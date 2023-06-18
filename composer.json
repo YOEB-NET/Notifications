@@ -24,7 +24,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Yoeb\\Badges\\YoebServiceProvider"
+                "Yoeb\\Notifications\\YoebServiceProvider"
             ]
         }
     },
