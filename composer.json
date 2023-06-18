@@ -1,0 +1,33 @@
+{
+    "name": "yoeb/notifications",
+    "description": "YOEB.net",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Yoeb\\Badges\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "YOEB",
+            "email": "support@yoeb.net"
+        }
+    ],
+    "require": {
+        "yoeb/firebase": "*",
+        "laravel/laravel": "*",
+        "php": "^8.0.2"
+    },
+    "require-dev": {
+        "laravel/laravel": "*"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Yoeb\\Badges\\YoebServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "type": "library"
+}
