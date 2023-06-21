@@ -38,9 +38,9 @@ class YoebMail extends Mailable
         if(!empty($this->mailPrefix)){
             $prefix = $this->mailPrefix;
         }
-        
+
         if(empty($this->view)){
-            
+
             if(empty($this->mailData["subject"])){
                 $this->mailData["subject"] = $this->subject;
             }
@@ -48,19 +48,19 @@ class YoebMail extends Mailable
             if(empty($this->mailData["brief"])){
                 $this->mailData["brief"] = $this->brief;
             }
-            
+
             if(empty($this->mailData["image"])){
                 $this->mailData["image"] = $this->image;
             }
-            
-            $this->view = realpath(__DIR__ . '\view\mail\base.blade.php');
+
+            $this->view = realpath(__DIR__ . "/view/mail/base.blade.php");
         }else{
             $this->view = view($this->view)->getPath();
         }
 
         $mail = $this->subject($prefix . $this->subject);
 
-        $viewContent = View::file($this->view, $this->mailData)->render();
+        $viewContent = View::file($this->view, $this->mailData ?? [])->render();
 
         $mail->html($viewContent);
         return $mail;
