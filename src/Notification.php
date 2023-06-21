@@ -4,6 +4,7 @@ namespace Yoeb\Notifications;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\URL;
 use Yoeb\Firebase\FBNotification;
 use Yoeb\Notifications\Mail\YoebMail;
 use Yoeb\Notifications\Model\YoebFcmId;
@@ -270,9 +271,12 @@ class Notification{
         }
 
         if(self::$sendEmail && Schema::hasColumn('users', 'email') && !empty(env("MAIL_USERNAME", null))){
-            $emails = User::whereIn("id", self::$userIds)->pluck("email");
-            foreach ($emails as $email) {
-                Mail::to($email)->send(new YoebMail(self::$title, self::$brief, self::$image, self::$mailPrefix, !empty(self::$mailExtra) ? self::$mailExtra : self::$extra, self::$mailView));
+            $users = User::whereIn("id", self::$userIds)->get(["id", "email"]);
+            foreach ($users as $user) {
+                if(!empty(self::$image)){
+                    self::$image =  URL::to('/') . "/yoeb/notification/read/email?image=".self::$image."&user_id=".$user->id."&notification_detail_id=".$notificationDetail->id;
+                }
+                Mail::to($user->email)->send(new YoebMail(self::$title, self::$brief, self::$image, self::$mailPrefix, !empty(self::$mailExtra) ? self::$mailExtra : self::$extra, self::$mailView));
             }
         }
 

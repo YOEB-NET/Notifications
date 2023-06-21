@@ -1,7 +1,9 @@
 <?php
 namespace Yoeb\Notifications;
 
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Yoeb\Notifications\Controller\YoebNotificationController;
 
 class YoebServiceProvider extends ServiceProvider {
 
@@ -11,5 +13,9 @@ class YoebServiceProvider extends ServiceProvider {
     }
 
 }
+
+// Route
+Route::get("/yoeb/notification/read/email", [YoebNotificationController::class, "readEmail"]);    
+
 
 ?>
