@@ -1,7 +1,11 @@
 <?php
 namespace Yoeb\Notifications;
 
+use App\Mail\test;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 use Yoeb\Firebase\FBNotification;
+use Yoeb\Notifications\Mail\YoebMail;
 use Yoeb\Notifications\Model\YoebFcmId;
 use Yoeb\Notifications\Model\YoebNotification as ModelYoebNotification;
 use Yoeb\Notifications\Model\YoebNotificationDetail;
@@ -14,6 +18,15 @@ class YoebNotification {
             "user_id"   => $userId,
             "fcm_id"    => $fcmId,
         ]);
+        return $data;
+    }
+
+    public static function listFcmId($userId = null){
+        $data = YoebFcmId::query();
+        if(!empty($userId)){
+            $data = $data->where("user_id", $userId);
+        }
+        $data = $data->get();
         return $data;
     }
 
@@ -57,25 +70,32 @@ class YoebNotification {
         $sendNotification = true,
         $sendImageNotification = true,
         $sendEmail = true,
+        $mailPrefix = null,
+        $mailView = null,
+        $mailExtra = null,
+        $addDb = true,
     ){
-        $notificationDetail = YoebNotificationDetail::create([
-            "title"         => $title,
-            "brief"         => $brief,
-            "description"   => $description,
-            "image"         => $image,
-            "extra"         => $extra,
-        ]);
-        if(empty($notificationDetail)){
-            return false;
+        if($addDb){
+            $notificationDetail = YoebNotificationDetail::create([
+                "title"         => $title,
+                "brief"         => $brief,
+                "description"   => $description,
+                "image"         => $image,
+                "extra"         => $extra,
+            ]);
+            if(empty($notificationDetail)){
+                return false;
+            }
+    
+            foreach ($userIds as $value) {
+                ModelYoebNotification::create([
+                    "user_id"                   => $value,
+                    "notification_detail_id"    => $notificationDetail->id,
+                ]);
+            }
+            
         }
 
-        foreach ($userIds as $key => $value) {
-            ModelYoebNotification::create([
-                "user_id"                   => $userIds,
-                "notification_detail_id"    => $notificationDetail->id,
-            ]);
-        }
-        
         if($sendNotification){
             $tokens = YoebFcmId::whereIn("user_id", $userIds)->pluck("fcm_id");
             FBNotification::send(
@@ -98,12 +118,13 @@ class YoebNotification {
             );
         }
 
-        if($sendEmail){
-            $email = YoebFcmId::whereIn("user_id", $userIds)->pluck("email");
-            
-            
+        if($sendEmail && Schema::hasColumn('users', 'email')){
+            $emails = YoebFcmId::whereIn("user_id", $userIds)->pluck("email");
+            foreach ($emails as $email) {
+                Mail::to($email)->send(new YoebMail($title, $brief, $image, $mailPrefix, !empty($mailExtra) ? $mailExtra : $extra, $mailView));
+            }
         }
-        
+
     }
 
 }

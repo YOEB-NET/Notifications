@@ -3,26 +3,27 @@
 namespace Yoeb\Notifications\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\View;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 class YoebMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    protected $subject, $mailData, $view;
+    public $subject, $brief, $image, $mailPrefix, $mailData, $view;
 
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($subject, $mailData = [], $view = null)
+    public function __construct($subject, $brief = null, $image = null, $mailPrefix = null, $mailData = [], $view = null)
     {
         $this->subject      = $subject;
+        $this->brief        = $brief;
+        $this->image        = $image;
+        $this->mailPrefix   = $mailPrefix;
         $this->mailData     = $mailData;
         $this->view         = $view;
     }
@@ -31,16 +32,37 @@ class YoebMail extends Mailable
     public function build()
     {
         $prefix = env("YOEB_MAIL_PREFIX", null);
-        if(!empty($prefix)){
-            $prefix = $prefix . " - ";
+        if(empty($prefix)){
+            $prefix = "";
         }
-
+        if(!empty($this->mailPrefix)){
+            $prefix = $this->mailPrefix;
+        }
+        
         if(empty($this->view)){
-            $this->view = "";
+            
+            if(empty($this->mailData["subject"])){
+                $this->mailData["subject"] = $this->subject;
+            }
+
+            if(empty($this->mailData["brief"])){
+                $this->mailData["brief"] = $this->brief;
+            }
+            
+            if(empty($this->mailData["image"])){
+                $this->mailData["image"] = $this->image;
+            }
+            
+            $this->view = realpath(__DIR__ . '\view\mail\base.blade.php');
+        }else{
+            $this->view = view($this->view)->getPath();
         }
 
-        $mail = $this->subject($prefix . $this->subject)->view(__DIR__.'/../view/mail/base');
+        $mail = $this->subject($prefix . $this->subject);
+
+        $viewContent = View::file($this->view, $this->mailData)->render();
+
+        $mail->html($viewContent);
         return $mail;
-        //return $this->subject($prefix . $this->subject)->view(__DIR__.'/../view/mail/base')->with("code", $this->mailData["code"]);
     }
 }
