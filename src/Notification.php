@@ -1,9 +1,14 @@
 <?php
+
+// 22.06.2022 YOEB.NET X BERKAY.ME
+
 namespace Yoeb\Notifications;
 
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\URL;
 use Yoeb\Firebase\FBNotification;
 use Yoeb\Notifications\Mail\YoebMail;
 use Yoeb\Notifications\Model\YoebFcmId;
@@ -270,9 +275,12 @@ class Notification{
         }
 
         if(self::$sendEmail && Schema::hasColumn('users', 'email') && !empty(env("MAIL_USERNAME", null))){
-            $emails = User::whereIn("id", self::$userIds)->pluck("email");
-            foreach ($emails as $email) {
-                Mail::to($email)->send(new YoebMail(self::$title, self::$brief, self::$image, self::$mailPrefix, !empty(self::$mailExtra) ? self::$mailExtra : self::$extra, self::$mailView));
+            $users = User::whereIn("id", self::$userIds)->get(["id", "email"]);
+            foreach ($users as $user) {
+                if(!empty(self::$image)){
+                    self::$image =  URL::to('/') . "/yoeb/notification/read/email?image=".self::$image."&user_id=".$user->id."&notification_detail_id=".$notificationDetail->id;
+                }
+                Mail::to($user->email)->send(new YoebMail(self::$title, self::$brief, self::$image, self::$mailPrefix, !empty(self::$mailExtra) ? self::$mailExtra : self::$extra, self::$mailView));
             }
         }
 
@@ -300,6 +308,8 @@ class Notification{
         self::$mailView = null;
         self::$mailExtra = null;
         self::$addDb = true;
+
+        return true;
     }
 
 
@@ -397,6 +407,29 @@ class Notification{
         return $data;
     }
 
+
+    public static function read($userId, $notificationDetailId)
+    {
+        $statusEmail = self::readEmail($userId, $notificationDetailId);
+        $statusNotification = self::readNotification($userId, $notificationDetailId);
+        return ($statusEmail && $statusNotification );
+    }
+
+    public static function readEmail($userId, $notificationDetailId)
+    {
+        $status = YoebNotification::where("user_id", $userId)->where("notification_detail_id", $notificationDetailId)->update([
+            "read_email" => Carbon::now()->format('Y-m-d H:i:s')
+        ]);
+        return $status;
+    }
+
+    public static function readNotification($userId, $notificationDetailId)
+    {
+        $status = YoebNotification::where("user_id", $userId)->where("notification_detail_id", $notificationDetailId)->update([
+            "read_notification" => Carbon::now()->format('Y-m-d H:i:s')
+        ]);
+        return $status;
+    }
 }
 
 ?>
