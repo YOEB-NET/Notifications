@@ -16,7 +16,7 @@ class YoebNotificationDetail extends Model
         "extra",
     ];
 
-    protected $cast = [
+    protected $casts = [
         "extra" => "object",
     ];
 }

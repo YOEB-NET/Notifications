@@ -274,7 +274,7 @@ class Notification{
             );
         }
 
-        if(self::$sendEmail && Schema::hasColumn('users', 'email') && !empty(env("MAIL_USERNAME", null))){
+        if(self::$sendEmail && Schema::hasColumn('users', 'email')){
             $users = User::whereIn("id", self::$userIds)->get(["id", "email"]);
             foreach ($users as $user) {
                 if(!empty(self::$image)){
