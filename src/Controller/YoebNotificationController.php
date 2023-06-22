@@ -4,7 +4,7 @@ namespace Yoeb\Notifications\Controller;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Yoeb\Notifications\Model\YoebNotification;
+use Yoeb\Notifications\Notification;
 
 class YoebNotificationController {
 
@@ -17,13 +17,11 @@ class YoebNotificationController {
 
         $filds = $validator->valid();
 
-        YoebNotification::where("user_id", $filds["user_id"])->where("notification_detail_id", $filds["notification_detail_id"])->update([
-            "read_email" => Carbon::now()->format('Y-m-d H:i:s')
-        ]);
+        Notification::readEmailWithDetail($filds["user_id"], $filds["notification_detail_id"]);
 
         return redirect($filds["image"]);
     }
-    
+
 }
 
 ?>

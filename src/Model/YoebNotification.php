@@ -19,4 +19,9 @@ class YoebNotification extends Model
         "read_notification"     => "datetime",
         "read_email"            => "datetime",
     ];
+
+    public function detail()
+    {
+        return $this->belongsTo(YoebNotificationDetail::class, 'notification_detail_id');
+    }
 }

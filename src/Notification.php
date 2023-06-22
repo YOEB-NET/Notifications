@@ -319,6 +319,7 @@ class Notification{
     protected static $paginate = 0;
     protected static $orderByDesc = null;
     protected static $orderBy = null;
+    protected static $userId = null;
 
     public static function start($date)
     {
@@ -350,44 +351,51 @@ class Notification{
         return (new static);
     }
 
-    public static function list($userId = null)
+    public static function user($userId)
     {
-        $notificationIds = YoebNotification::query();
-        if(!empty($userId)){
-            $notificationIds = $notificationIds->where("user_id", $userId);
-        }
-        $notificationIds = $notificationIds->pluck("notification_detail_id");
-        $notificationIds->unique();
+        self::$userId = $userId;
+        return (new static);
+    }
 
-        $notificationDetail = YoebNotificationDetail::query();
-        $notificationDetail = $notificationDetail->whereIn("id", $notificationIds);
+    public static function list()
+    {
+        $notification = YoebNotification::query();
+        if(!empty(self::$userId)){
+            $notification = $notification->where("user_id", self::$userId);
+        }
+        $notification = $notification->with("detail:id,title,brief,description,image,extra");
 
         if(!empty(self::$startDate)){
-            $notificationDetail = $notificationDetail->whereDate("created_at", ">", self::$startDate);
+            $notification = $notification->whereDate("created_at", ">", self::$startDate);
         }
         if(!empty(self::$endDate)){
-            $notificationDetail = $notificationDetail->whereDate("created_at", "<", self::$endDate);
+            $notification = $notification->whereDate("created_at", "<", self::$endDate);
         }
 
         if(!empty(self::$orderByDesc)){
-            $notificationDetail = $notificationDetail->orderByDesc(self::$orderByDesc);
+            $notification = $notification->orderByDesc(self::$orderByDesc);
         }
 
         if(!empty(self::$orderBy)){
-            $notificationDetail = $notificationDetail->orderBy(self::$orderBy);
+            $notification = $notification->orderBy(self::$orderBy);
+        }
+
+        if(!empty(self::$userId)){
+            $notification = $notification->where("user_id",self::$userId);
         }
 
         if(self::$paginate){
-            $data = $notificationDetail->paginate(self::$paginate);
+            $data = $notification->paginate(self::$paginate);
         }else{
-            $data = $notificationDetail->get();
+            $data = $notification->get();
         }
 
-        self::$startDate = null;
-        self::$endDate = null;
-        self::$paginate = 0;
-        self::$orderByDesc = null;
-        self::$orderBy = null;
+        self::$startDate    = null;
+        self::$endDate      = null;
+        self::$paginate     = 0;
+        self::$orderByDesc  = null;
+        self::$orderBy      = null;
+        self::$userId       = null;
 
         return $data;
     }
@@ -408,14 +416,38 @@ class Notification{
     }
 
 
-    public static function read($userId, $notificationDetailId)
+
+    public static function read($id)
     {
-        $statusEmail = self::readEmail($userId, $notificationDetailId);
-        $statusNotification = self::readNotification($userId, $notificationDetailId);
+        $statusEmail = self::readEmail($id);
+        $statusNotification = self::readNotification($id);
         return ($statusEmail && $statusNotification );
     }
 
-    public static function readEmail($userId, $notificationDetailId)
+    public static function readEmail($id)
+    {
+        $status = YoebNotification::where("id", $id)->update([
+            "read_email" => Carbon::now()->format('Y-m-d H:i:s')
+        ]);
+        return $status;
+    }
+
+    public static function readNotification($id)
+    {
+        $status = YoebNotification::where("id", $id)->update([
+            "read_notification" => Carbon::now()->format('Y-m-d H:i:s')
+        ]);
+        return $status;
+    }
+
+    public static function readWithDetail($userId, $notificationDetailId)
+    {
+        $statusEmail = self::readEmailWithDetail($userId, $notificationDetailId);
+        $statusNotification = self::readNotificationWithDetail($userId, $notificationDetailId);
+        return ($statusEmail && $statusNotification );
+    }
+
+    public static function readEmailWithDetail($userId, $notificationDetailId)
     {
         $status = YoebNotification::where("user_id", $userId)->where("notification_detail_id", $notificationDetailId)->update([
             "read_email" => Carbon::now()->format('Y-m-d H:i:s')
@@ -423,7 +455,7 @@ class Notification{
         return $status;
     }
 
-    public static function readNotification($userId, $notificationDetailId)
+    public static function readNotificationWithDetail($userId, $notificationDetailId)
     {
         $status = YoebNotification::where("user_id", $userId)->where("notification_detail_id", $notificationDetailId)->update([
             "read_notification" => Carbon::now()->format('Y-m-d H:i:s')
@@ -433,3 +465,4 @@ class Notification{
 }
 
 ?>
+
