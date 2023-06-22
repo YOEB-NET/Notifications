@@ -15,7 +15,7 @@ class YoebNotification extends Model
         "read_email",
     ];
 
-    protected $cast = [
+    protected $casts = [
         "read_notification"     => "datetime",
         "read_email"            => "datetime",
     ];
