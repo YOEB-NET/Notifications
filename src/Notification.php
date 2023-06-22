@@ -415,13 +415,21 @@ class Notification{
         return $data;
     }
 
-    public static function delete($id){
-        $data = YoebNotification::where("id", $id)->forceDelete();
+    public static function delete($id, $userId = null){
+        $data = YoebNotification::query();
+        if(!empty($userId)){
+            $data = $data->where("user_id", $userId);
+        }
+        $data = $data->where("id", $id)->forceDelete();
         return $data;
     }
 
-    public static function softDelete($id){
-        $data = YoebNotification::where("id", $id)->delete();
+    public static function softDelete($id, $userId = null){
+        $data = YoebNotification::query();
+        if(!empty($userId)){
+            $data = $data->where("user_id", $userId);
+        }
+        $data = $data->where("id", $id)->delete();
         return $data;
     }
 
