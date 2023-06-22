@@ -401,21 +401,29 @@ class Notification{
     }
 
 
-    public static function delete($id){
+    public static function deleteDetail($id){
         $data = YoebNotificationDetail::where("id", $id)->first();
         YoebNotification::where("notification_detail_id", $data->id)->forceDelete();
         $data->forceDelete();
         return $data;
     }
 
-    public static function softDelete($id){
+    public static function softDeleteDetail($id){
         $data = YoebNotificationDetail::where("id", $id)->first();
         YoebNotification::where("notification_detail_id", $data->id)->delete();
         $data->delete();
         return $data;
     }
 
+    public static function delete($id){
+        $data = YoebNotification::where("id", $id)->forceDelete();
+        return $data;
+    }
 
+    public static function softDelete($id){
+        $data = YoebNotification::where("id", $id)->delete();
+        return $data;
+    }
 
     public static function read($id)
     {
