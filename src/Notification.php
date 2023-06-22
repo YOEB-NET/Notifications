@@ -440,20 +440,28 @@ class Notification{
         return ($statusEmail && $statusNotification );
     }
 
-    public static function readEmail($id)
+    public static function readEmail($id, $userId = null)
     {
-        $status = YoebNotification::where("id", $id)->update([
+        $data = YoebNotification::query();
+        if(!empty($userId)){
+            $data = $data->where("user_id", $userId);
+        }
+        $data = $data->where("id", $id)->whereNull("read_email")->update([
             "read_email" => Carbon::now()->format('Y-m-d H:i:s')
         ]);
-        return $status;
+        return $data;
     }
 
-    public static function readNotification($id)
+    public static function readNotification($id, $userId = null)
     {
-        $status = YoebNotification::where("id", $id)->update([
+        $data = YoebNotification::query();
+        if(!empty($userId)){
+            $data = $data->where("user_id", $userId);
+        }
+        $data = $data->where("id", $id)->whereNull("read_notification")->update([
             "read_notification" => Carbon::now()->format('Y-m-d H:i:s')
         ]);
-        return $status;
+        return $data;
     }
 
     public static function readWithDetail($userId, $notificationDetailId)
@@ -465,7 +473,7 @@ class Notification{
 
     public static function readEmailWithDetail($userId, $notificationDetailId)
     {
-        $status = YoebNotification::where("user_id", $userId)->where("notification_detail_id", $notificationDetailId)->update([
+        $status = YoebNotification::where("user_id", $userId)->where("notification_detail_id", $notificationDetailId)->whereNull("read_email")->update([
             "read_email" => Carbon::now()->format('Y-m-d H:i:s')
         ]);
         return $status;
@@ -473,7 +481,7 @@ class Notification{
 
     public static function readNotificationWithDetail($userId, $notificationDetailId)
     {
-        $status = YoebNotification::where("user_id", $userId)->where("notification_detail_id", $notificationDetailId)->update([
+        $status = YoebNotification::where("user_id", $userId)->where("notification_detail_id", $notificationDetailId)->whereNull("read_notification")->update([
             "read_notification" => Carbon::now()->format('Y-m-d H:i:s')
         ]);
         return $status;
