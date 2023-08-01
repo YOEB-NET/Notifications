@@ -26,6 +26,6 @@ class YoebNotification extends Model
     }
 
     public function user_detail() {
-        return $this->hasOne(User::class, "id", "user_id");
+        return $this->hasOne(\App\Models\User::class, "id", "user_id");
     }
 }
