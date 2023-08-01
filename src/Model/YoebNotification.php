@@ -24,4 +24,8 @@ class YoebNotification extends Model
     {
         return $this->belongsTo(YoebNotificationDetail::class, 'notification_detail_id');
     }
+
+    public function user_detail() {
+        return $this->hasOne(User::class, "id", "user_id");
+    }
 }
